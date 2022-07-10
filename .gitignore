@@ -1,0 +1,11 @@
+# Files
+tokens
+*.json
+*.log
+*.csv
+*.txt
+*.pyc
+
+# Folders
+.vscode
+.pytest_cache
