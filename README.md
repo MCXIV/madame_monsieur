@@ -1,3 +1,4 @@
+[![Python application](https://github.com/MCXIV/madame_monsieur/actions/workflows/python-app.yml/badge.svg?branch=master)](https://github.com/MCXIV/madame_monsieur/actions/workflows/python-app.yml)
 # madame_monsieur
 *Madame, Monsieur* is a **Discord bot** (using webhook) for random things, including **weather informations**, random (shitty) **jokes**, random **facts**, and **news** (Technology related).
 
