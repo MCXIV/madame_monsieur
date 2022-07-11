@@ -40,13 +40,13 @@ class MadameMonsieur:
                 self.NEWS_API_KEY = f[2].split('=')[1].strip('\n')
         except Exception as e:
             logging.error(f'Could not load tokens: {e}')
-            try:
-                self.BLAGUE_API_KEY = os.environ['BLAGUE_API_KEY']
-                self.DISCORD_WEBHOOK_URL = os.environ['DISCORD_WEBHOOK_URL']
-                self.NEWS_API_KEY = os.environ['NEWS_API_KEY']
-            except Exception as e:
-                logging.error(f'Could not load tokens: {e}')
-                sys.exit(1)
+        try:
+            self.BLAGUE_API_KEY = os.environ['BLAGUE_API_KEY']
+            self.DISCORD_WEBHOOK_URL = os.environ['DISCORD_WEBHOOK_URL']
+            self.NEWS_API_KEY = os.environ['NEWS_API_KEY']
+        except Exception as e:
+            logging.error(f'Could not load tokens: {e}')
+            sys.exit(1)
     
     def send_meteo(self, ville):
         """
