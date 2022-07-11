@@ -55,4 +55,4 @@ def test_send_info():
     * Check the response's status code
     """
     mM = script.MadameMonsieur()
-    assert mM.send_info('TEST INFO', 'https://github.com/MCXIV/madame_monsieur', 'https://github.githubassets.com/app-icon-192.png') == 204
+    assert mM.send_info('TEST INFO', 'https://github.com/MCXIV/madame_monsieur', 'https://avatars.githubusercontent.com/u/43221669?v=4') == 204

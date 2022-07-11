@@ -38,8 +38,10 @@ class MadameMonsieur:
                 self.DISCORD_WEBHOOK_URL = f[0].split('=')[1].strip('\n')
                 self.BLAGUE_API_KEY = f[1].split('=')[1].strip('\n')
                 self.NEWS_API_KEY = f[2].split('=')[1].strip('\n')
+                return None
         except Exception as e:
             logging.error(f'Could not load tokens: {e}')
+        
         try:
             self.BLAGUE_API_KEY = os.environ['BLAGUE_API_KEY']
             self.DISCORD_WEBHOOK_URL = os.environ['DISCORD_WEBHOOK_URL']
