@@ -7,7 +7,7 @@
 # --------------------------------------------------
 
 # Built-in
-
+import os
 
 # 3rd party
 import pytest
@@ -21,12 +21,11 @@ def load_tokens():
     :return: the discordWebhook, jokeApi, and newsApi variables.
     """
     
-    with open('tokens', 'r') as f:
-        f = f.readlines()
-        discordWebhook = f[0].split('=')[1].strip('\n')
-        jokeApi = f[1].split('=')[1].strip('\n')
-        newsApi = f[2].split('=')[1].strip('\n')
-    return discordWebhook, jokeApi, newsApi if '' not in [discordWebhook, jokeApi, newsApi] else None
+    BLAGUE_API_KEY = os.environ['BLAGUE_API_KEY']
+    DISCORD_WEBHOOK_URL = os.environ['DISCORD_WEBHOOK_URL']
+    NEWS_API_KEY = os.environ['NEWS_API_KEY']
+    
+    return DISCORD_WEBHOOK_URL, BLAGUE_API_KEY, NEWS_API_KEY if '' not in [DISCORD_WEBHOOK_URL, BLAGUE_API_KEY, NEWS_API_KEY] else None
 
 def test_send_meteo():
     """ Scenario:
