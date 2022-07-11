@@ -3,7 +3,6 @@ tokens
 *.json
 *.log
 *.csv
-*.txt
 *.pyc
 
 # Folders

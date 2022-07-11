@@ -34,7 +34,7 @@ def test_send_meteo():
     * Check the response's status code
     """
     
-    assert script.send_meteo(load_tokens()[0], 'Lyon').status_code == 204
+    assert script.send_meteo(load_tokens()[0], 'Lyon') == 204
     
 def test_send_joke():
     """ Scenario:
@@ -43,7 +43,7 @@ def test_send_joke():
     * Check the response's status code
     """
     
-    assert script.send_joke(load_tokens()[0], load_tokens()[1], 'dark').status_code == 204
+    assert script.send_joke(load_tokens()[0], load_tokens()[1], 'dark') == 204
     
 def test_send_fact():
     """ Scenario:
@@ -51,7 +51,7 @@ def test_send_fact():
     * Send it to the Discord webhook
     * Check the response's status code
     """
-    assert script.send_fact(load_tokens()[0]).status_code == 204
+    assert script.send_fact(load_tokens()[0]) == 204
 
 def test_send_news():
     """ Scenario:
