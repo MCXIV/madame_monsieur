@@ -60,3 +60,10 @@ def test_send_news():
     * Check the response's status code
     """
     assert script.send_news(load_tokens()[0], load_tokens()[2]) == [204, 204, 204, 204, 204, 204]
+    
+def test_send_info():
+    """ Scenario:
+    * Send a request to the Discord webhook URL with the info as an embed
+    * Check the response's status code
+    """
+    assert script.send_info(load_tokens()[0], 'TEST INFO', 'https://www.google.fr', 'https://www.google.fr/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png') == 204

@@ -114,6 +114,7 @@ def send_news(webhook_url, newsApi):
     :param newsApi: The API key for the news API
     :return: A list of response code.
     """
+    
     url = "https://google-news1.p.rapidapi.com/topic-headlines"
 
     querystring = {"topic":"TECHNOLOGY","country":"FR","lang":"fr","limit":"5"}
@@ -165,6 +166,24 @@ def send_news(webhook_url, newsApi):
 
     return responseCode
     
+def send_info(webhook_url, info, infoUrl, imageUrl):
+    embed = {
+        'title': 'Bonjour, c\'est une info',
+        'description': info,
+        'url': infoUrl,
+        'image' : {'url' : imageUrl},
+    }
+    
+    data = {
+        'content': '',
+        'embeds': [embed]
+    }
+    
+    headers = {
+        'Content-Type': 'application/json'
+    }
+        
+    return requests.post(webhook_url, data=json.dumps(data).encode('utf-8'), headers=headers).status_code
     
 if __name__ == '__main__':
     logging.basicConfig(filename='madame_monsieur.log', filemode='a', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
@@ -176,10 +195,10 @@ if __name__ == '__main__':
             jokeApi = tokens[1].split('=')[1].strip('\n')
             newsApi = tokens[2].split('=')[1].strip('\n')
             logging.info('Tokens loaded')
-    except:
+    except Exception as e:
         logging.error('Error while reading tokens')
-        sys.exit(1)
-        
+        sys.exit(e)
+
     flag_meteo = 1
     flag_joke = 1
     flag_fact = 1
@@ -208,5 +227,5 @@ if __name__ == '__main__':
             flag_fact = 1
         if time.time() - flag_news >= 18000 and flag_news != 1:
             flag_news = 1
-            
-        time.sleep(1 if not DEBUG else 10)
+
+        time.sleep(10 if DEBUG else 1)
