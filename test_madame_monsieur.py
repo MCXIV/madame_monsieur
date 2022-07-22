@@ -56,3 +56,13 @@ def test_send_info():
     """
     mM = script.MadameMonsieur()
     assert mM.send_info('TEST INFO', 'https://github.com/MCXIV/madame_monsieur', 'https://avatars.githubusercontent.com/u/43221669?v=4') == 204
+
+def test_send_trending_stocks():
+    """ Scenario:
+    * Get the trending stocks from Yahoo Finance
+    * Parse the raw html source code to a Discord embed message
+    * Send the results
+    * Check the response's status code
+    """
+    mM = script.MadameMonsieur()
+    assert mM.send_trending_stocks() == 204
