@@ -19,6 +19,7 @@ from deep_translator import GoogleTranslator
 
 # DEBUG
 DEBUG = 0
+DEVELOP = 1
 
 # --------------------------------------------------
 
@@ -35,16 +36,17 @@ class MadameMonsieur:
         try:
             with open('tokens', 'r') as f:
                 f = f.readlines()
-                self.DISCORD_WEBHOOK_URL = f[0].split('=')[1].strip('\n')
-                self.BLAGUE_API_KEY = f[1].split('=')[1].strip('\n')
-                self.NEWS_API_KEY = f[2].split('=')[1].strip('\n')
+                self.DISCORD_WEBHOOK_URL = f[0].split('=')[1].strip('\n') if not DEVELOP else f[1].split('=')[1].strip('\n')
+                self.BLAGUE_API_KEY = f[2].split('=')[1].strip('\n')
+                self.NEWS_API_KEY = f[3].split('=')[1].strip('\n')
                 return None
         except Exception as e:
             logging.error(f'Could not load tokens: {e}')
         # If tokens file failed, try to load tokens from environment variables (for Github Actions)
         try:
             self.BLAGUE_API_KEY = os.environ['BLAGUE_API_KEY']
-            self.DISCORD_WEBHOOK_URL = os.environ['DISCORD_WEBHOOK_URL']
+            self.DISCORD_WEBHOOK_URL = os.environ['DISCORD_WEBHOOK_URL'] if not DEVELOP else os.environ['DISCORD_WEBHOOK_URL_DEV']
+            self.NEWS_API_KEY = os.environ['NEWS_API_KEY']
             self.NEWS_API_KEY = os.environ['NEWS_API_KEY']
         except Exception as e:
             logging.error(f'Could not load tokens: {e}')
@@ -112,8 +114,13 @@ class MadameMonsieur:
         :return: The response's status code from the POST request.
         """
         
-        fact = requests.get('https://fungenerators.com/random/facts/').text
-        fact = GoogleTranslator(source='english', target=language).translate(fact.split('<h2 class="wow fadeInUp animated"  data-wow-delay=".6s">')[1].split('<span class="text-muted">')[0])
+        try:
+            fact = requests.get('https://fungenerators.com/random/facts/').text
+            fact = GoogleTranslator(source='english', target=language).translate(fact.split('<h2 class="wow fadeInUp animated"  data-wow-delay=".6s">')[1].split('<span class="text-muted">')[0])
+        except Exception as e:
+            logging.info(f'Could not get fact: {e}')
+            return -1
+        
         embed = {
             'title': 'Bonjour, c\'est le fact',
             'description': fact,
@@ -159,7 +166,7 @@ class MadameMonsieur:
 
         embed = {
             'title': 'Bonjour, c\'est les actus ' + timeOfDay,
-            'description': 'Les 5 derniÃ¨res actualitÃ©s tech. du moment.',
+            'description': 'Les 5 dernières actualités tech. du moment.',
             'url': 'https://rapidapi.com/ubillarnet/api/google-news1/details',
         }
         data = {
@@ -215,6 +222,43 @@ class MadameMonsieur:
             
         return requests.post(self.DISCORD_WEBHOOK_URL, data=json.dumps(data).encode('utf-8'), headers=headers).status_code
         
+    def send_trending_stocks(self):
+        """
+        It gets the trending stocks from Yahoo Finance, formats them into a Discord embed, and sends
+        them to a Discord webhook
+        :return: The status code of the request.
+        """
+        
+        try:
+            response = requests.get('https://finance.yahoo.com/trending-tickers').text.split('\n')
+            titles = response[44].split('title="')
+            trendingTitles = ''
+            for title in titles:
+                if 'Inc.' in title:
+                    titleName = title.split('"')[0]
+                    titleValue = title.split('value="')[1].split('"')[0]
+                    titleChange = str(round(float(title.split('value="')[4].split('"')[0]), 2))
+                    titleChange = ('+' + titleChange) if '-' not in titleChange else titleChange
+                    trendingTitles+=(f'{titleName} : US$ {titleValue} ({titleChange}%)\n')
+        except Exception as e:
+            logging.info(f'Error while getting trending stocks: {str(e)}')
+            
+        embed = {
+            'title': 'Bonjour, c\'est les trending stocks du moment',
+            'description': trendingTitles,
+            'url': 'https://finance.yahoo.com/trending-tickers',
+        }
+        
+        data = {
+            'content': '',
+            'embeds': [embed]
+        }
+        
+        headers = {
+            'Content-Type': 'application/json'
+        }
+            
+        return requests.post(self.DISCORD_WEBHOOK_URL, data=json.dumps(data).encode('utf-8'), headers=headers).status_code
         
 if __name__ == '__main__':
     mM = MadameMonsieur()
@@ -224,7 +268,8 @@ if __name__ == '__main__':
     flag_joke = 1
     flag_fact = 1
     flag_news = 1
-
+    flag_stocks = 1
+    mM.send_trending_stocks()
     while 1:
         # If the time is 8:00, send the meteo
         if time.localtime().tm_hour == 8 and time.localtime().tm_min == 0 and flag_meteo == 1 or DEBUG:
@@ -243,6 +288,10 @@ if __name__ == '__main__':
         if time.localtime().tm_hour in [8, 13, 18] and time.localtime().tm_min == 0 and flag_news == 1 or DEBUG:    
             logging.info('Sent news - ' + str(mM.send_news()))
             flag_news = time.time()
+        
+        if time.localtime().tm_hour in [16, 18, 20, 22] and time.localtime().tm_min == 0 and flag_news == 1 or DEBUG:    
+            logging.info('Sent trending stocks - ' + str(mM.send_trending_stocks()))
+            flag_stocks = time.time()
 
         if time.time() - flag_meteo >= 86400 and flag_meteo != 1:
             flag_meteo = 1
@@ -252,5 +301,7 @@ if __name__ == '__main__':
             flag_fact = 1
         if time.time() - flag_news >= 18000 and flag_news != 1:
             flag_news = 1
+        if time.time() - flag_stocks >= 3600 and flag_stocks != 1:
+            flag_stocks = 1
 
         time.sleep(10 if DEBUG else 1)
