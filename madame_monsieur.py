@@ -270,7 +270,7 @@ if __name__ == '__main__':
     flag_fact = 1
     flag_news = 1
     flag_stocks = 1
-    mM.send_trending_stocks()
+
     while 1:
         # If the time is 8:00, send the meteo
         if time.localtime().tm_hour == 8 and time.localtime().tm_min == 0 and flag_meteo == 1 or DEBUG:
