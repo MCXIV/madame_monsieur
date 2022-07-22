@@ -5,9 +5,9 @@ name: Python application
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "develop" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "develop" ]
 
 permissions:
   contents: read
@@ -38,6 +38,7 @@ jobs:
       env:
         BLAGUE_API_KEY: ${{ secrets.BLAGUE_API_KEY }}
         DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        DISCORD_WEBHOOK_URL_DEV: ${{ secrets.DISCORD_WEBHOOK_URL_DEV }}
         NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
       run: |
         pytest
