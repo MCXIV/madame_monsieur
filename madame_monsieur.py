@@ -232,20 +232,21 @@ class MadameMonsieur:
         try:
             response = requests.get('https://finance.yahoo.com/trending-tickers').text.split('\n')
             titles = response[44].split('title="')
-            trendingTitles = ''
+            trendingTitles = []
             for title in titles:
                 if 'Inc.' in title:
                     titleName = title.split('"')[0]
                     titleValue = title.split('value="')[1].split('"')[0]
                     titleChange = str(round(float(title.split('value="')[4].split('"')[0]), 2))
                     titleChange = ('+' + titleChange) if '-' not in titleChange else titleChange
-                    trendingTitles+=(f'{titleName} : US$ {titleValue} ({titleChange}%)\n')
+                    trendingTitles.append([titleName, titleValue, titleChange])
+            trendingTitles = sorted(trendingTitles, key=lambda x: float(x[2]), reverse=True)
         except Exception as e:
             logging.info(f'Error while getting trending stocks: {str(e)}')
             
         embed = {
             'title': 'Bonjour, c\'est les trending stocks du moment',
-            'description': trendingTitles,
+            'description': ''.join(f'{trendingTitle[0]} : US$ {trendingTitle[1]} ({trendingTitle[2]}%)\n' for trendingTitle in trendingTitles),
             'url': 'https://finance.yahoo.com/trending-tickers',
         }
         
@@ -269,7 +270,7 @@ if __name__ == '__main__':
     flag_fact = 1
     flag_news = 1
     flag_stocks = 1
-
+    mM.send_trending_stocks()
     while 1:
         # If the time is 8:00, send the meteo
         if time.localtime().tm_hour == 8 and time.localtime().tm_min == 0 and flag_meteo == 1 or DEBUG:
