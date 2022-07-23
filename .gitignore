@@ -4,6 +4,7 @@ tokens
 *.log
 *.csv
 *.pyc
+test.py
 
 # Folders
 .vscode

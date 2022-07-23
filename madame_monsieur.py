@@ -222,9 +222,9 @@ class MadameMonsieur:
             
         return requests.post(self.DISCORD_WEBHOOK_URL, data=json.dumps(data).encode('utf-8'), headers=headers).status_code
         
-    def send_trending_stocks(self):
+    def send_trending_tickers(self):
         """
-        It gets the trending stocks from Yahoo Finance, formats them into a Discord embed, and sends
+        It gets the trending tickers from Yahoo Finance, formats them into a Discord embed, and sends
         them to a Discord webhook
         :return: The status code of the request.
         """
@@ -232,34 +232,40 @@ class MadameMonsieur:
         try:
             response = requests.get('https://finance.yahoo.com/trending-tickers').text.split('\n')
             titles = response[44].split('title="')
+
+            for i in range(len(titles)):
+                if 'next"><svg class="' in titles[i]:
+                    break
+
             trendingTitles = []
-            for title in titles:
-                if 'Inc.' in title:
-                    titleName = title.split('"')[0]
-                    titleValue = title.split('value="')[1].split('"')[0]
-                    titleChange = str(round(float(title.split('value="')[4].split('"')[0]), 2))
-                    titleChange = ('+' + titleChange) if '-' not in titleChange else titleChange
+            for i in range(i+2, len(titles)):
+                if titles[i].split('"')[0] != '':
+                    titleName = titles[i].split('"')[0]
+                    titleValue = titles[i].split('value="')[1].split('"')[0]
+                    titleChange = str(round(float(titles[i].split('value="')[4].split('"')[0]), 2))
+                    titleChange = f'+{titleChange}' if '-' not in titleChange else titleChange
                     trendingTitles.append([titleName, titleValue, titleChange])
             trendingTitles = sorted(trendingTitles, key=lambda x: float(x[2]), reverse=True)
+            
+            embed = {
+                'title': 'Bonjour, c\'est les trending tickers du moment',
+                'description': ''.join(f'{trendingTitle[0]} : US$ {trendingTitle[1]} ({trendingTitle[2]}%)\n' for trendingTitle in trendingTitles),
+                'url': 'https://finance.yahoo.com/trending-tickers',
+            }
+            
+            data = {
+                'content': '',
+                'embeds': [embed]
+            }
+            
+            headers = {
+                'Content-Type': 'application/json'
+            }
+                
+            return requests.post(self.DISCORD_WEBHOOK_URL, data=json.dumps(data).encode('utf-8'), headers=headers).status_code
         except Exception as e:
             logging.info(f'Error while getting trending stocks: {str(e)}')
-            
-        embed = {
-            'title': 'Bonjour, c\'est les trending stocks du moment',
-            'description': ''.join(f'{trendingTitle[0]} : US$ {trendingTitle[1]} ({trendingTitle[2]}%)\n' for trendingTitle in trendingTitles),
-            'url': 'https://finance.yahoo.com/trending-tickers',
-        }
-        
-        data = {
-            'content': '',
-            'embeds': [embed]
-        }
-        
-        headers = {
-            'Content-Type': 'application/json'
-        }
-            
-        return requests.post(self.DISCORD_WEBHOOK_URL, data=json.dumps(data).encode('utf-8'), headers=headers).status_code
+
         
 if __name__ == '__main__':
     mM = MadameMonsieur()
@@ -290,8 +296,9 @@ if __name__ == '__main__':
             logging.info('Sent news - ' + str(mM.send_news()))
             flag_news = time.time()
         
+        # If the hour is 4PM, 6PM, 20PM or 22PM, send the last trending tickers
         if time.localtime().tm_hour in [16, 18, 20, 22] and time.localtime().tm_min == 0 and flag_stocks == 1 or DEBUG:    
-            logging.info('Sent trending stocks - ' + str(mM.send_trending_stocks()))
+            logging.info('Sent trending stocks - ' + str(mM.send_trending_tickers()))
             flag_stocks = time.time()
 
         if time.time() - flag_meteo >= 86400 and flag_meteo != 1:

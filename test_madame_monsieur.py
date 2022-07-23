@@ -57,12 +57,12 @@ def test_send_info():
     mM = script.MadameMonsieur()
     assert mM.send_info('TEST INFO', 'https://github.com/MCXIV/madame_monsieur', 'https://avatars.githubusercontent.com/u/43221669?v=4') == 204
 
-def test_send_trending_stocks():
+def test_send_trending_tickers():
     """ Scenario: (This test MUST be run before commiting the changes, as Github Actions is probably banned from Yahoo Finance)
-    * Get the trending stocks from Yahoo Finance
+    * Get the trending tickers from Yahoo Finance
     * Parse the raw html source code to a Discord embed message
     * Sends the results
     * Check the response's status code (429 if test performed by Github Actions)
     """
     mM = script.MadameMonsieur()
-    assert mM.send_trending_stocks() in [204, 429]
+    assert mM.send_trending_tickers() in [204, 429]
