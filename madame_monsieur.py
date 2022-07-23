@@ -290,7 +290,7 @@ if __name__ == '__main__':
             logging.info('Sent news - ' + str(mM.send_news()))
             flag_news = time.time()
         
-        if time.localtime().tm_hour in [16, 18, 20, 22] and time.localtime().tm_min == 0 and flag_news == 1 or DEBUG:    
+        if time.localtime().tm_hour in [16, 18, 20, 22] and time.localtime().tm_min == 0 and flag_stocks == 1 or DEBUG:    
             logging.info('Sent trending stocks - ' + str(mM.send_trending_stocks()))
             flag_stocks = time.time()
 
