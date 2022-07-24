@@ -12,6 +12,7 @@ import time
 import logging
 import sys
 import os
+import configparser
 
 # 3rd party
 import requests
@@ -34,6 +35,7 @@ class MadameMonsieur:
         logging.info('Starting Madame Monsieur')
         # Try to load tokens
         try:
+            self.load_configuration()
             with open('tokens', 'r') as f:
                 f = f.readlines()
                 self.DISCORD_WEBHOOK_URL = f[0].split('=')[1].strip('\n') if not DEVELOP else f[1].split('=')[1].strip('\n')
@@ -51,7 +53,11 @@ class MadameMonsieur:
         except Exception as e:
             logging.error(f'Could not load tokens: {e}')
             sys.exit(1)
-    
+             
+    def load_configuration(self):
+        self.config = configparser.ConfigParser()
+        self.config.read('./config.conf')
+        
     def send_meteo(self, ville):
         """
         It sends a request to the Discord webhook URL with the meteo image as an embed
@@ -77,7 +83,7 @@ class MadameMonsieur:
             'Content-Type': 'application/json'
         }
 
-        return requests.post(self.DISCORD_WEBHOOK_URL, data=json.dumps(data).encode('utf-8'), headers=headers).status_code
+        return requests.post(self.DISCORD_WEBHOOK_URL, data=json.dumps(data).encode('latin-1'), headers=headers).status_code
 
     def send_joke(self, type):
         """
@@ -103,7 +109,7 @@ class MadameMonsieur:
             'Content-Type': 'application/json'
         }
             
-        return requests.post(self.DISCORD_WEBHOOK_URL, data=json.dumps(data).encode('utf-8'), headers=headers).status_code
+        return requests.post(self.DISCORD_WEBHOOK_URL, data=json.dumps(data).encode('latin-1'), headers=headers).status_code
 
     def send_fact(self, language='fr'):
         """
@@ -118,7 +124,7 @@ class MadameMonsieur:
             fact = requests.get('https://fungenerators.com/random/facts/').text
             fact = GoogleTranslator(source='english', target=language).translate(fact.split('<h2 class="wow fadeInUp animated"  data-wow-delay=".6s">')[1].split('<span class="text-muted">')[0])
         except Exception as e:
-            logging.info(f'Could not get fact: {e}')
+            logging.error(f'Could not get fact: {e}')
             return -1
         
         embed = {
@@ -135,7 +141,7 @@ class MadameMonsieur:
             'Content-Type': 'application/json'
         }
             
-        return requests.post(self.DISCORD_WEBHOOK_URL, data=json.dumps(data).encode('utf-8'), headers=headers).status_code
+        return requests.post(self.DISCORD_WEBHOOK_URL, data=json.dumps(data).encode('latin-1'), headers=headers).status_code
 
     def send_news(self):
         """
@@ -176,7 +182,7 @@ class MadameMonsieur:
         headers = {
             'Content-Type': 'application/json'
         }
-        responseCode = [requests.post(self.DISCORD_WEBHOOK_URL, data=json.dumps(data).encode('utf-8'), headers=headers).status_code]
+        responseCode = [requests.post(self.DISCORD_WEBHOOK_URL, data=json.dumps(data).encode('latin-1'), headers=headers).status_code]
 
         for i in news['articles']:
             embed = {
@@ -264,52 +270,92 @@ class MadameMonsieur:
                 
             return requests.post(self.DISCORD_WEBHOOK_URL, data=json.dumps(data).encode('utf-8'), headers=headers).status_code
         except Exception as e:
-            logging.info(f'Error while getting trending stocks: {str(e)}')
+            logging.error(f'Error while getting trending tickers: {str(e)}')
+            
 
         
 if __name__ == '__main__':
     mM = MadameMonsieur()
-
-    # Flags for the different types of messages
-    flag_meteo = 1
-    flag_joke = 1
-    flag_fact = 1
-    flag_news = 1
-    flag_stocks = 1
-
-    while 1:
-        # If the time is 8:00, send the meteo
-        if time.localtime().tm_hour == 8 and time.localtime().tm_min == 0 and flag_meteo == 1 or DEBUG:
-            logging.info('Sent meteo - ' + str(mM.send_meteo('Lyon')))
-            logging.info('Sent meteo - ' + str(mM.send_meteo('Oyonnax')))
-            flag_meteo = time.time()
-        # If the hour is even (from 9AM to 9PM), send the joke
-        if time.localtime().tm_hour in [9, 11, 13, 15, 17, 19, 21] and time.localtime().tm_min == 0 and flag_joke == 1 or DEBUG:
-            logging.info('Sent joke - ' + str(mM.send_joke('dark')))
-            flag_joke = time.time()
-        # If the hour is odd (from 10AM to 10PM), send a fact
-        if time.localtime().tm_hour in [10, 12, 14, 16, 18, 20, 22] and time.localtime().tm_min == 0 and flag_fact == 1 or DEBUG:
-            logging.info('Sent fact - ' +  str(mM.send_fact()))
-            flag_fact = time.time()
-        # If the hour is 8AM, or 1PM, or 6PM, send the news
-        if time.localtime().tm_hour in [8, 13, 18] and time.localtime().tm_min == 0 and flag_news == 1 or DEBUG:    
-            logging.info('Sent news - ' + str(mM.send_news()))
-            flag_news = time.time()
+    meteoConfig, jokeConfig, newsConfig, factConfig, tickersConfig = 0, 0, 0, 0, 0
+    
+    try:
+        if int(mM.config['MAIN']['meteo']):
+            meteoConfig = [mM.config['TIME PERIOD']['meteo_tp'].split(','), mM.config['FREQUENCY']['meteo_frequency'], mM.config['LANGUAGE']['meteo_language']]
+        if int(mM.config['MAIN']['joke']):
+            jokeConfig = [mM.config['TIME PERIOD']['joke_tp'].split(','), mM.config['FREQUENCY']['joke_frequency'], mM.config['LANGUAGE']['joke_language']]
+        if int(mM.config['MAIN']['fact']):
+            factConfig = [mM.config['TIME PERIOD']['fact_tp'].split(','), mM.config['FREQUENCY']['fact_frequency'], mM.config['LANGUAGE']['fact_language']]     
+        if int(mM.config['MAIN']['news']):
+            newsConfig = [mM.config['TIME PERIOD']['news_tp'].split(','), mM.config['FREQUENCY']['news_frequency'], mM.config['LANGUAGE']['news_language']]
+        if int(mM.config['MAIN']['tickers']):
+            tickersConfig = [mM.config['TIME PERIOD']['tickers_tp'].split(','), mM.config['FREQUENCY']['tickers_frequency'], None]
+            
+        if meteoConfig:
+            meteoConfig.append([i for i in range(int(meteoConfig[0][0]), int(meteoConfig[0][1])+1, int(meteoConfig[1]))])
+            meteoConfig.append(1)
+                    
+        if jokeConfig:
+            jokeConfig.append([i for i in range(int(jokeConfig[0][0]), int(jokeConfig[0][1])+1, int(jokeConfig[1]))])
+            jokeConfig.append(1)
+            
+        if factConfig:
+            factConfig.append([i for i in range(int(factConfig[0][0]), int(factConfig[0][1])+1, int(factConfig[1]))])
+            factConfig.append(1)
         
-        # If the hour is 4PM, 6PM, 20PM or 22PM, send the last trending tickers
-        if time.localtime().tm_hour in [16, 18, 20, 22] and time.localtime().tm_min == 0 and flag_stocks == 1 or DEBUG:    
-            logging.info('Sent trending stocks - ' + str(mM.send_trending_tickers()))
-            flag_stocks = time.time()
+        if newsConfig:
+            newsConfig.append([i for i in range(int(newsConfig[0][0]), int(newsConfig[0][1])+1, int(newsConfig[1]))])
+            newsConfig.append(1)
+            
+        if tickersConfig:
+            tickersConfig.append([i for i in range(int(tickersConfig[0][0]), int(tickersConfig[0][1])+1, int(tickersConfig[1]))])
+            tickersConfig.append(1)
+    except Exception as e:
+        logging.error(f'Error while parsing config: {str(e)}')
+        
+    while 1:
+        try:
+            if meteoConfig:
+                if time.localtime().tm_hour in meteoConfig[3] and 'time.localtime().tm_min == 0' and meteoConfig[4] == 1 or DEBUG:
+                    logging.info('Sent meteo - ' + str(mM.send_meteo('Lyon')))
+                    meteoConfig[4] = time.time()
+                if time.time() - meteoConfig[4] > 60 and meteoConfig[4] != 1:
+                    meteoConfig[4] = 1
+                    
+            if jokeConfig:
+                if time.localtime().tm_hour in jokeConfig[3] and 'time.localtime().tm_min == 0' and jokeConfig[4] == 1 or DEBUG:
+                    logging.info('Sent joke - ' + str(mM.send_joke('dark')))
+                    jokeConfig[4] = time.time()
+                if time.time() - jokeConfig[4] > 60 and jokeConfig[4] != 1:
+                    jokeConfig[4] = 1
+                    
+            if factConfig:
+                if time.localtime().tm_hour in factConfig[3] and 'time.localtime().tm_min == 0' and factConfig[4] == 1 or DEBUG:
+                    logging.info('Sent fact - ' + str(mM.send_fact('fr')))
+                    factConfig[4] = time.time()
+                if time.time() - factConfig[4] > 60 and factConfig[4] != 1:
+                    factConfig[4] = 1
+                    
+            if newsConfig:
+                if time.localtime().tm_hour in newsConfig[3] and 'time.localtime().tm_min == 0' and newsConfig[4] == 1 or DEBUG:
+                    logging.info('Sent news - ' + str(mM.send_news()))
+                    newsConfig[4] = time.time()
+                if time.time() - newsConfig[4] > 60 and newsConfig[4] != 1:
+                    newsConfig[4] = 1
+            
+            if tickersConfig:
+                if time.localtime().tm_hour in tickersConfig[3] and 'time.localtime().tm_min == 0' and tickersConfig[4] == 1 or DEBUG:
+                    logging.info('Sent trending tickers - ' + str(mM.send_trending_tickers()))
+                    tickersConfig[4] = time.time()
+                if time.time() - tickersConfig[4] > 60 and tickersConfig[4] != 1:
+                    tickersConfig[4] = 1
 
-        if time.time() - flag_meteo >= 86400 and flag_meteo != 1:
-            flag_meteo = 1
-        if time.time() - flag_joke >= 7200 and flag_joke != 1:
-            flag_joke = 1
-        if time.time() - flag_fact >= 7200 and flag_fact != 1:
-            flag_fact = 1
-        if time.time() - flag_news >= 18000 and flag_news != 1:
-            flag_news = 1
-        if time.time() - flag_stocks >= 3600 and flag_stocks != 1:
-            flag_stocks = 1
-
+        except Exception as e:
+            logging.error(f'Error while sending message: {str(e)}')
+        
         time.sleep(10 if DEBUG else 1)
+                    
+# TODO:
+# - update tests for configuration file
+# - add some sort of docs lol
+# - add different language support
+# - add different meteo location support
