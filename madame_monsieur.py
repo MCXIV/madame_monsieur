@@ -315,35 +315,35 @@ if __name__ == '__main__':
     while 1:
         try:
             if meteoConfig:
-                if time.localtime().tm_hour in meteoConfig[3] and 'time.localtime().tm_min == 0' and meteoConfig[4] == 1 or DEBUG:
+                if time.localtime().tm_hour in meteoConfig[3] and time.localtime().tm_min == 0 and meteoConfig[4] == 1 or DEBUG:
                     logging.info('Sent meteo - ' + str(mM.send_meteo('Lyon')))
                     meteoConfig[4] = time.time()
                 if time.time() - meteoConfig[4] > 60 and meteoConfig[4] != 1:
                     meteoConfig[4] = 1
                     
             if jokeConfig:
-                if time.localtime().tm_hour in jokeConfig[3] and 'time.localtime().tm_min == 0' and jokeConfig[4] == 1 or DEBUG:
+                if time.localtime().tm_hour in jokeConfig[3] and time.localtime().tm_min == 0 and jokeConfig[4] == 1 or DEBUG:
                     logging.info('Sent joke - ' + str(mM.send_joke('dark')))
                     jokeConfig[4] = time.time()
                 if time.time() - jokeConfig[4] > 60 and jokeConfig[4] != 1:
                     jokeConfig[4] = 1
                     
             if factConfig:
-                if time.localtime().tm_hour in factConfig[3] and 'time.localtime().tm_min == 0' and factConfig[4] == 1 or DEBUG:
+                if time.localtime().tm_hour in factConfig[3] and time.localtime().tm_min == 0 and factConfig[4] == 1 or DEBUG:
                     logging.info('Sent fact - ' + str(mM.send_fact('fr')))
                     factConfig[4] = time.time()
                 if time.time() - factConfig[4] > 60 and factConfig[4] != 1:
                     factConfig[4] = 1
                     
             if newsConfig:
-                if time.localtime().tm_hour in newsConfig[3] and 'time.localtime().tm_min == 0' and newsConfig[4] == 1 or DEBUG:
+                if time.localtime().tm_hour in newsConfig[3] and time.localtime().tm_min == 0 and newsConfig[4] == 1 or DEBUG:
                     logging.info('Sent news - ' + str(mM.send_news()))
                     newsConfig[4] = time.time()
                 if time.time() - newsConfig[4] > 60 and newsConfig[4] != 1:
                     newsConfig[4] = 1
             
             if tickersConfig:
-                if time.localtime().tm_hour in tickersConfig[3] and 'time.localtime().tm_min == 0' and tickersConfig[4] == 1 or DEBUG:
+                if time.localtime().tm_hour in tickersConfig[3] and time.localtime().tm_min == 0 and tickersConfig[4] == 1 or DEBUG:
                     logging.info('Sent trending tickers - ' + str(mM.send_trending_tickers()))
                     tickersConfig[4] = time.time()
                 if time.time() - tickersConfig[4] > 60 and tickersConfig[4] != 1:
